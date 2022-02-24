@@ -57,7 +57,7 @@ public class ArrayList<E> extends AbstractList<E>
     private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
 
     /**
-     * 存放数据的数组的缓存变量，不可序列化
+     * 存放数据的数组的缓存变量，transient不可序列化,若可以序列化将会有大量的null值被序列化
      */
     transient Object[] elementData;
 
@@ -103,9 +103,10 @@ public class ArrayList<E> extends AbstractList<E>
      * @throws NullPointerException 如果指定的集合是空的
      */
     public ArrayList(Collection<? extends E> c) {
+        // c.toarray可能（错误地）不返回对象[]（见JAVA BUG编号6260652）
+        //ArrayList 初始化之后（ArrayList 元素非 Object 类型），再次调用 toArray 方法，得到 Object 数组，并且往 Object 数组赋值时，才会触发此 bug
         elementData = c.toArray();
         if ((size = elementData.length) != 0) {
-            // c.toarray可能（错误地）不返回对象[]（见JAVA BUG编号6260652）
             if (elementData.getClass() != Object[].class) {
                 elementData = Arrays.copyOf(elementData, size, Object[].class);
             }
@@ -174,8 +175,9 @@ public class ArrayList<E> extends AbstractList<E>
         modCount++;
 
         // 如果最小需要空间比elementData的内存空间要大，则需要扩容
-        if (minCapacity - elementData.length > 0)
+        if (minCapacity - elementData.length > 0) {
             grow(minCapacity);
+        }
     }
 
     /**
@@ -195,11 +197,13 @@ public class ArrayList<E> extends AbstractList<E>
         int newCapacity = oldCapacity + (oldCapacity >> 1);
         // 再判断一下新数组的容量够不够，够了就直接使用这个长度创建新数组，
         // 不够就将数组长度设置为需要的长度
-        if (newCapacity - minCapacity < 0)
+        if (newCapacity - minCapacity < 0) {
             newCapacity = minCapacity;
+        }
         //若预设值大于默认的最大值检查是否溢出
-        if (newCapacity - MAX_ARRAY_SIZE > 0)
+        if (newCapacity - MAX_ARRAY_SIZE > 0) {
             newCapacity = hugeCapacity(minCapacity);
+        }
         // 调用Arrays.copyOf方法将elementData数组指向新的内存空间时newCapacity的连续空间
         // 并将elementData的数据复制到新的内存空间
         elementData = Arrays.copyOf(elementData, newCapacity);
@@ -212,8 +216,10 @@ public class ArrayList<E> extends AbstractList<E>
      * @return
      */
     private static int hugeCapacity(int minCapacity) {
-        if (minCapacity < 0)   //溢出
+        //超过范围会变为负数，说明溢出
+        if (minCapacity < 0){
             throw new OutOfMemoryError();
+        }
         return (minCapacity > MAX_ARRAY_SIZE) ?
                 Integer.MAX_VALUE :
                 MAX_ARRAY_SIZE;
@@ -224,6 +230,7 @@ public class ArrayList<E> extends AbstractList<E>
      *
      * @return ArrayList中的元素数量
      */
+    @Override
     public int size() {
         return size;
     }
@@ -233,6 +240,7 @@ public class ArrayList<E> extends AbstractList<E>
      *
      * @return true 如果ArrayList中无元素
      */
+    @Override
     public boolean isEmpty() {
         return size == 0;
     }
@@ -243,6 +251,7 @@ public class ArrayList<E> extends AbstractList<E>
      * @param o 检测o是否为ArrayList中元素
      * @return true 如果ArrayList中包含o元素
      */
+    @Override
     public boolean contains(Object o) {
         return indexOf(o) >= 0;
     }
@@ -254,15 +263,20 @@ public class ArrayList<E> extends AbstractList<E>
      * @param o
      * @return
      */
+    @Override
     public int indexOf(Object o) {
         if (o == null) {
-            for (int i = 0; i < size; i++)
-                if (elementData[i] == null)
+            for (int i = 0; i < size; i++) {
+                if (elementData[i] == null) {
                     return i;
+                }
+            }
         } else {
-            for (int i = 0; i < size; i++)
-                if (o.equals(elementData[i]))
+            for (int i = 0; i < size; i++) {
+                if (o.equals(elementData[i])) {
                     return i;
+                }
+            }
         }
         return -1;
     }
@@ -273,15 +287,20 @@ public class ArrayList<E> extends AbstractList<E>
      * @param o
      * @return
      */
+    @Override
     public int lastIndexOf(Object o) {
         if (o == null) {
-            for (int i = size - 1; i >= 0; i--)
-                if (elementData[i] == null)
+            for (int i = size - 1; i >= 0; i--) {
+                if (elementData[i] == null) {
                     return i;
+                }
+            }
         } else {
-            for (int i = size - 1; i >= 0; i--)
-                if (o.equals(elementData[i]))
+            for (int i = size - 1; i >= 0; i--) {
+                if (o.equals(elementData[i])) {
                     return i;
+                }
+            }
         }
         return -1;
     }
@@ -291,6 +310,7 @@ public class ArrayList<E> extends AbstractList<E>
      *
      * @return v ArrayList副本
      */
+    @Override
     public Object clone() {
         try {
             // 调用父类(翻看源码可见是Object类)的clone方法得到一个ArrayList副本
@@ -311,6 +331,7 @@ public class ArrayList<E> extends AbstractList<E>
      *
      * @return 一个数组包含所有列表中的元素, 且顺序正确
      */
+    @Override
     public Object[] toArray() {
         return Arrays.copyOf(elementData, size);
     }
@@ -325,14 +346,17 @@ public class ArrayList<E> extends AbstractList<E>
      * @throws ArrayStoreException  将与数组类型不兼容的值赋值给数组元素时抛出的异常
      * @throws NullPointerException 数组为空
      */
+    @Override
     @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {
-        if (a.length < size)
+        if (a.length < size){
             // 创建一个新的a的运行时类型数组，内容不变
             return (T[]) Arrays.copyOf(elementData, size, a.getClass());
+        }
         System.arraycopy(elementData, 0, a, 0, size);
-        if (a.length > size)
+        if (a.length > size) {
             a[size] = null;
+        }
         return a;
     }
 
@@ -355,6 +379,7 @@ public class ArrayList<E> extends AbstractList<E>
      * @return ArrayList中指定位置的元素
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
+    @Override
     public E get(int index) {
         // 检查是否越界
         rangeCheck(index);
@@ -370,6 +395,7 @@ public class ArrayList<E> extends AbstractList<E>
      * @return 之前在指定位置的元素
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
+    @Override
     public E set(int index, E element) {
         // 检查是否越界
         rangeCheck(index);
@@ -386,6 +412,7 @@ public class ArrayList<E> extends AbstractList<E>
      * @param e 要添加到此列表中的元素
      * @return <tt>true</tt> (as specified by {@link Collection#add})
      */
+    @Override
     public boolean add(E e) {
         // 扩容
         ensureCapacityInternal(size + 1);  // Increments modCount!!
@@ -401,6 +428,7 @@ public class ArrayList<E> extends AbstractList<E>
      * @param element 要插入的元素
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
+    @Override
     public void add(int index, E element) {
         // 判断index是否越界
         rangeCheckForAdd(index);
@@ -424,6 +452,7 @@ public class ArrayList<E> extends AbstractList<E>
      * @return 从ArrayList中删除的元素
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
+    @Override
     public E remove(int index) {
         // 判断是否越界
         rangeCheck(index);
@@ -433,10 +462,11 @@ public class ArrayList<E> extends AbstractList<E>
         E oldValue = elementData(index);
         // 获取index位置开始到最后一个位置的个数
         int numMoved = size - index - 1;
-        if (numMoved > 0)
+        if (numMoved > 0){
             // 将elementData数组index+1位置开始拷贝到elementData从index开始的空间
             System.arraycopy(elementData, index + 1, elementData, index,
                     numMoved);
+        }
         // 使size-1 ，设置elementData的size位置为空，让GC来清理内存空间
         elementData[--size] = null; //便于垃圾回收器回收
 
@@ -449,19 +479,22 @@ public class ArrayList<E> extends AbstractList<E>
      * @param o 要从该列表中删除的元素（如果存在）
      * @return true 如果这个列表包含指定的元素
      */
+    @Override
     public boolean remove(Object o) {
         if (o == null) {
-            for (int index = 0; index < size; index++)
+            for (int index = 0; index < size; index++) {
                 if (elementData[index] == null) {
                     fastRemove(index);
                     return true;
                 }
+            }
         } else {
-            for (int index = 0; index < size; index++)
+            for (int index = 0; index < size; index++) {
                 if (o.equals(elementData[index])) {
                     fastRemove(index);
                     return true;
                 }
+            }
         }
         return false;
     }
@@ -475,9 +508,10 @@ public class ArrayList<E> extends AbstractList<E>
     private void fastRemove(int index) {
         modCount++;
         int numMoved = size - index - 1;
-        if (numMoved > 0)
+        if (numMoved > 0) {
             System.arraycopy(elementData, index + 1, elementData, index,
                     numMoved);
+        }
         // 使size-1 ，设置elementData的size位置为空，让GC来清理内存空间
         elementData[--size] = null; //便于垃圾回收器回收
     }
@@ -485,12 +519,14 @@ public class ArrayList<E> extends AbstractList<E>
     /**
      * 清空数组，把每一个值设为null,方便垃圾回收(不同于reset，数组默认大小有改变的话不会重置)
      */
+    @Override
     public void clear() {
         modCount++;
 
         //便于垃圾回收器回收
-        for (int i = 0; i < size; i++)
+        for (int i = 0; i < size; i++) {
             elementData[i] = null;
+        }
         //把size设置为0，以便我们不会浏览到null值的内存空间
         size = 0;
     }
@@ -502,6 +538,7 @@ public class ArrayList<E> extends AbstractList<E>
      * @return true 如果该列表因添加而改变
      * @throws NullPointerException 如果指定的集合是空的
      */
+    @Override
     public boolean addAll(Collection<? extends E> c) {
         // 将c转换为数组a
         Object[] a = c.toArray();
@@ -526,6 +563,7 @@ public class ArrayList<E> extends AbstractList<E>
      * @throws IndexOutOfBoundsException {@inheritDoc}
      * @throws NullPointerException      如果指定的集合是空的
      */
+    @Override
     public boolean addAll(int index, Collection<? extends E> c) {
         // 判断index大于size或者是小于0,如果是，则抛出IndexOutOfBoundsException异常
         rangeCheckForAdd(index);
@@ -536,9 +574,10 @@ public class ArrayList<E> extends AbstractList<E>
         ensureCapacityInternal(size + numNew);  // Increments modCount
         // 获取需要添加的个数
         int numMoved = size - index;
-        if (numMoved > 0)
+        if (numMoved > 0) {
             System.arraycopy(elementData, index, elementData, index + numNew,
                     numMoved);
+        }
 
         System.arraycopy(a, 0, elementData, index, numNew);
         size += numNew;
@@ -555,6 +594,7 @@ public class ArrayList<E> extends AbstractList<E>
      *                                   toIndex > size() ||
      *                                   toIndex < fromIndex})
      */
+    @Override
     protected void removeRange(int fromIndex, int toIndex) {
         modCount++;
         int numMoved = size - toIndex;//后段保留的长度
@@ -574,16 +614,18 @@ public class ArrayList<E> extends AbstractList<E>
      */
     private void rangeCheck(int index) {
         // 如果下标超过ArrayList的数组长度
-        if (index >= size)
+        if (index >= size) {
             throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
+        }
     }
 
     /**
      * 检查是否溢出
      */
     private void rangeCheckForAdd(int index) {
-        if (index > size || index < 0)
+        if (index > size || index < 0) {
             throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
+        }
     }
 
     /**
@@ -607,6 +649,7 @@ public class ArrayList<E> extends AbstractList<E>
      *                              or if the specified collection is null
      * @see Collection#contains(Object)
      */
+    @Override
     public boolean removeAll(Collection<?> c) {
         // 如果c为空，则抛出空指针异常
         Objects.requireNonNull(c);
@@ -628,6 +671,7 @@ public class ArrayList<E> extends AbstractList<E>
      *                              or if the specified collection is null
      * @see Collection#contains(Object)
      */
+    @Override
     public boolean retainAll(Collection<?> c) {
         Objects.requireNonNull(c);
         // 调用batchRemove保留c中的元素
@@ -648,11 +692,13 @@ public class ArrayList<E> extends AbstractList<E>
         boolean modified = false;
         try {
             // r先右移
-            for (; r < size; r++)
+            for (; r < size; r++){
                 // 如果c中不包含elementData[r]这个元素
-                if (c.contains(elementData[r]) == complement)
+                if (c.contains(elementData[r]) == complement){
                     // 则直接将r位置的元素赋值给w位置的元素，w自增
                     elementData[w++] = elementData[r];
+                }
+            }
         } finally {
             // 防止抛出异常导致上面r的右移过程没完成
             if (r != size) {
@@ -666,8 +712,9 @@ public class ArrayList<E> extends AbstractList<E>
             // 如果有被覆盖掉的元素，则将w后面的元素都赋值为null
             if (w != size) {
                 // clear to let GC do its work
-                for (int i = w; i < size; i++)
+                for (int i = w; i < size; i++) {
                     elementData[i] = null;
+                }
                 modCount += size - w;//改变的次数
                 //新的大小为保留的元素的个数
                 size = w;
@@ -736,9 +783,11 @@ public class ArrayList<E> extends AbstractList<E>
      *
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
+    @Override
     public ListIterator<E> listIterator(int index) {
-        if (index < 0 || index > size)
+        if (index < 0 || index > size) {
             throw new IndexOutOfBoundsException("Index: " + index);
+        }
         return new ListItr(index);
     }
 
@@ -747,6 +796,7 @@ public class ArrayList<E> extends AbstractList<E>
      *
      * @see #listIterator(int)
      */
+    @Override
     public ListIterator<E> listIterator() {
         return new ListItr(0);
     }
@@ -756,6 +806,7 @@ public class ArrayList<E> extends AbstractList<E>
      *
      * @return an iterator over the elements in this list in proper sequence
      */
+    @Override
     public Iterator<E> iterator() {
         return new Itr();
     }
@@ -769,28 +820,34 @@ public class ArrayList<E> extends AbstractList<E>
         int expectedModCount = modCount;//迭代过程不运行修改数组，否则就抛出异常
 
         //是否还有下一个
+        @Override
         public boolean hasNext() {
             return cursor != size;
         }
 
         //下一个元素
+        @Override
         @SuppressWarnings("unchecked")
         public E next() {
             checkForComodification();//检查数组是否被修改
             int i = cursor;
-            if (i >= size)
+            if (i >= size) {
                 throw new NoSuchElementException();
+            }
             Object[] elementData = ArrayList.this.elementData;
-            if (i >= elementData.length)
+            if (i >= elementData.length) {
                 throw new ConcurrentModificationException();
+            }
             cursor = i + 1;//向后移动游标
             return (E) elementData[lastRet = i];//设置访问的位置并返回这个值
         }
 
         //删除元素
+        @Override
         public void remove() {
-            if (lastRet < 0)
+            if (lastRet < 0) {
                 throw new IllegalStateException();
+            }
             checkForComodification();//检查数组是否被修改
 
             try {
@@ -827,8 +884,9 @@ public class ArrayList<E> extends AbstractList<E>
 
         //检查数组是否被修改
         final void checkForComodification() {
-            if (modCount != expectedModCount)
+            if (modCount != expectedModCount) {
                 throw new ConcurrentModificationException();
+            }
         }
     }
 
@@ -841,34 +899,42 @@ public class ArrayList<E> extends AbstractList<E>
             cursor = index;
         }
 
+        @Override
         public boolean hasPrevious() {
             return cursor != 0;
         }
 
+        @Override
         public int nextIndex() {
             return cursor;
         }
 
+        @Override
         public int previousIndex() {
             return cursor - 1;
         }
 
+        @Override
         @SuppressWarnings("unchecked")
         public E previous() {
             checkForComodification();
             int i = cursor - 1;
-            if (i < 0)
+            if (i < 0) {
                 throw new NoSuchElementException();
+            }
             Object[] elementData = ArrayList.this.elementData;
-            if (i >= elementData.length)
+            if (i >= elementData.length) {
                 throw new ConcurrentModificationException();
+            }
             cursor = i;
             return (E) elementData[lastRet = i];
         }
 
+        @Override
         public void set(E e) {
-            if (lastRet < 0)
+            if (lastRet < 0) {
                 throw new IllegalStateException();
+            }
             checkForComodification();
 
             try {
@@ -878,6 +944,7 @@ public class ArrayList<E> extends AbstractList<E>
             }
         }
 
+        @Override
         public void add(E e) {
             checkForComodification();
 
@@ -922,6 +989,7 @@ public class ArrayList<E> extends AbstractList<E>
      * @throws IndexOutOfBoundsException {@inheritDoc}
      * @throws IllegalArgumentException  {@inheritDoc}
      */
+    @Override
     public List<E> subList(int fromIndex, int toIndex) {
         subListRangeCheck(fromIndex, toIndex, size);
         return new SubList(this, 0, fromIndex, toIndex);
@@ -935,13 +1003,16 @@ public class ArrayList<E> extends AbstractList<E>
      * @param size
      */
     static void subListRangeCheck(int fromIndex, int toIndex, int size) {
-        if (fromIndex < 0)
+        if (fromIndex < 0) {
             throw new IndexOutOfBoundsException("fromIndex = " + fromIndex);
-        if (toIndex > size)
+        }
+        if (toIndex > size) {
             throw new IndexOutOfBoundsException("toIndex = " + toIndex);
-        if (fromIndex > toIndex)
+        }
+        if (fromIndex > toIndex) {
             throw new IllegalArgumentException("fromIndex(" + fromIndex +
                     ") > toIndex(" + toIndex + ")");
+        }
     }
 
     /**
@@ -962,6 +1033,7 @@ public class ArrayList<E> extends AbstractList<E>
             this.modCount = ArrayList.this.modCount;
         }
 
+        @Override
         public E set(int index, E e) {
             rangeCheck(index);
             checkForComodification();
@@ -970,17 +1042,20 @@ public class ArrayList<E> extends AbstractList<E>
             return oldValue;
         }
 
+        @Override
         public E get(int index) {
             rangeCheck(index);
             checkForComodification();
             return ArrayList.this.elementData(offset + index);
         }
 
+        @Override
         public int size() {
             checkForComodification();
             return this.size;
         }
 
+        @Override
         public void add(int index, E e) {
             rangeCheckForAdd(index);
             checkForComodification();
@@ -989,6 +1064,7 @@ public class ArrayList<E> extends AbstractList<E>
             this.size++;
         }
 
+        @Override
         public E remove(int index) {
             rangeCheck(index);
             checkForComodification();
@@ -998,6 +1074,7 @@ public class ArrayList<E> extends AbstractList<E>
             return result;
         }
 
+        @Override
         protected void removeRange(int fromIndex, int toIndex) {
             checkForComodification();
             parent.removeRange(parentOffset + fromIndex,
@@ -1006,15 +1083,18 @@ public class ArrayList<E> extends AbstractList<E>
             this.size -= toIndex - fromIndex;
         }
 
+        @Override
         public boolean addAll(Collection<? extends E> c) {
             return addAll(this.size, c);
         }
 
+        @Override
         public boolean addAll(int index, Collection<? extends E> c) {
             rangeCheckForAdd(index);
             int cSize = c.size();
-            if (cSize == 0)
+            if (cSize == 0) {
                 return false;
+            }
 
             checkForComodification();
             parent.addAll(parentOffset + index, c);
@@ -1023,10 +1103,12 @@ public class ArrayList<E> extends AbstractList<E>
             return true;
         }
 
+        @Override
         public Iterator<E> iterator() {
             return listIterator();
         }
 
+        @Override
         public ListIterator<E> listIterator(final int index) {
             checkForComodification();
             rangeCheckForAdd(index);
@@ -1037,40 +1119,49 @@ public class ArrayList<E> extends AbstractList<E>
                 int lastRet = -1;
                 int expectedModCount = ArrayList.this.modCount;
 
+                @Override
                 public boolean hasNext() {
                     return cursor != SubList.this.size;
                 }
 
+                @Override
                 @SuppressWarnings("unchecked")
                 public E next() {
                     checkForComodification();
                     int i = cursor;
-                    if (i >= SubList.this.size)
+                    if (i >= SubList.this.size) {
                         throw new NoSuchElementException();
+                    }
                     Object[] elementData = ArrayList.this.elementData;
-                    if (offset + i >= elementData.length)
+                    if (offset + i >= elementData.length) {
                         throw new ConcurrentModificationException();
+                    }
                     cursor = i + 1;
                     return (E) elementData[offset + (lastRet = i)];
                 }
 
+                @Override
                 public boolean hasPrevious() {
                     return cursor != 0;
                 }
 
+                @Override
                 @SuppressWarnings("unchecked")
                 public E previous() {
                     checkForComodification();
                     int i = cursor - 1;
-                    if (i < 0)
+                    if (i < 0) {
                         throw new NoSuchElementException();
+                    }
                     Object[] elementData = ArrayList.this.elementData;
-                    if (offset + i >= elementData.length)
+                    if (offset + i >= elementData.length) {
                         throw new ConcurrentModificationException();
+                    }
                     cursor = i;
                     return (E) elementData[offset + (lastRet = i)];
                 }
 
+                @Override
                 @SuppressWarnings("unchecked")
                 public void forEachRemaining(Consumer<? super E> consumer) {
                     Objects.requireNonNull(consumer);
@@ -1091,17 +1182,21 @@ public class ArrayList<E> extends AbstractList<E>
                     checkForComodification();
                 }
 
+                @Override
                 public int nextIndex() {
                     return cursor;
                 }
 
+                @Override
                 public int previousIndex() {
                     return cursor - 1;
                 }
 
+                @Override
                 public void remove() {
-                    if (lastRet < 0)
+                    if (lastRet < 0) {
                         throw new IllegalStateException();
+                    }
                     checkForComodification();
 
                     try {
@@ -1114,9 +1209,11 @@ public class ArrayList<E> extends AbstractList<E>
                     }
                 }
 
+                @Override
                 public void set(E e) {
-                    if (lastRet < 0)
+                    if (lastRet < 0) {
                         throw new IllegalStateException();
+                    }
                     checkForComodification();
 
                     try {
@@ -1126,6 +1223,7 @@ public class ArrayList<E> extends AbstractList<E>
                     }
                 }
 
+                @Override
                 public void add(E e) {
                     checkForComodification();
 
@@ -1141,8 +1239,9 @@ public class ArrayList<E> extends AbstractList<E>
                 }
 
                 final void checkForComodification() {
-                    if (expectedModCount != ArrayList.this.modCount)
+                    if (expectedModCount != ArrayList.this.modCount) {
                         throw new ConcurrentModificationException();
+                    }
                 }
             };
         }
@@ -1154,19 +1253,22 @@ public class ArrayList<E> extends AbstractList<E>
          * @param toIndex
          * @return
          */
+        @Override
         public List<E> subList(int fromIndex, int toIndex) {
             subListRangeCheck(fromIndex, toIndex, size);
             return new SubList(this, offset, fromIndex, toIndex);
         }
 
         private void rangeCheck(int index) {
-            if (index < 0 || index >= this.size)
+            if (index < 0 || index >= this.size) {
                 throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
+            }
         }
 
         private void rangeCheckForAdd(int index) {
-            if (index < 0 || index > this.size)
+            if (index < 0 || index > this.size) {
                 throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
+            }
         }
 
         private String outOfBoundsMsg(int index) {
@@ -1174,10 +1276,12 @@ public class ArrayList<E> extends AbstractList<E>
         }
 
         private void checkForComodification() {
-            if (ArrayList.this.modCount != this.modCount)
+            if (ArrayList.this.modCount != this.modCount) {
                 throw new ConcurrentModificationException();
+            }
         }
 
+        @Override
         public Spliterator<E> spliterator() {
             checkForComodification();
             return new ArrayListSpliterator<E>(ArrayList.this, offset,
@@ -1256,9 +1360,9 @@ public class ArrayList<E> extends AbstractList<E>
             int hi; // (a specialized variant appears in method forEach)
             ArrayList<E> lst;
             if ((hi = fence) < 0) {
-                if ((lst = list) == null)
+                if ((lst = list) == null) {
                     hi = fence = 0;
-                else {
+                } else {
                     expectedModCount = lst.modCount;
                     hi = fence = lst.size;
                 }
@@ -1266,6 +1370,7 @@ public class ArrayList<E> extends AbstractList<E>
             return hi;
         }
 
+        @Override
         public ArrayListSpliterator<E> trySplit() {
             int hi = getFence(), lo = index, mid = (lo + hi) >>> 1;
             return (lo >= mid) ? null : // divide range in half unless too small
@@ -1273,49 +1378,58 @@ public class ArrayList<E> extends AbstractList<E>
                             expectedModCount);
         }
 
+        @Override
         public boolean tryAdvance(Consumer<? super E> action) {
-            if (action == null)
+            if (action == null) {
                 throw new NullPointerException();
+            }
             int hi = getFence(), i = index;
             if (i < hi) {
                 index = i + 1;
                 @SuppressWarnings("unchecked") E e = (E) list.elementData[i];
                 action.accept(e);
-                if (list.modCount != expectedModCount)
+                if (list.modCount != expectedModCount) {
                     throw new ConcurrentModificationException();
+                }
                 return true;
             }
             return false;
         }
 
+        @Override
         public void forEachRemaining(Consumer<? super E> action) {
             int i, hi, mc; // hoist accesses and checks from loop
             ArrayList<E> lst;
             Object[] a;
-            if (action == null)
+            if (action == null) {
                 throw new NullPointerException();
+            }
             if ((lst = list) != null && (a = lst.elementData) != null) {
                 if ((hi = fence) < 0) {
                     mc = lst.modCount;
                     hi = lst.size;
-                } else
+                } else {
                     mc = expectedModCount;
+                }
                 if ((i = index) >= 0 && (index = hi) <= a.length) {
                     for (; i < hi; ++i) {
                         @SuppressWarnings("unchecked") E e = (E) a[i];
                         action.accept(e);
                     }
-                    if (lst.modCount == mc)
+                    if (lst.modCount == mc) {
                         return;
+                    }
                 }
             }
             throw new ConcurrentModificationException();
         }
 
+        @Override
         public long estimateSize() {
             return (long) (getFence() - index);
         }
 
+        @Override
         public int characteristics() {
             return Spliterator.ORDERED | Spliterator.SIZED | Spliterator.SUBSIZED;
         }

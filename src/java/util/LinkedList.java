@@ -60,10 +60,11 @@ public class LinkedList<E>
         //将newNode作为首节点
         first = newNode;
         //如果原首节点为null，即原链表为null，则链表尾节点也设置为newNode
-        if (f == null)
+        if (f == null) {
             last = newNode;
-        else                //否则，原首节点的prev设置为newNode
+        } else{                //否则，原首节点的prev设置为newNode
             f.prev = newNode;
+        }
         size++;             //长度+1
         modCount++;         //修改次数+1
     }
@@ -79,10 +80,11 @@ public class LinkedList<E>
         //将newNode作为尾节点
         last = newNode;
         //如果原尾节点为null，即原链表为null，则链表首节点也设置为newNode
-        if (l == null)
+        if (l == null) {
             first = newNode;
-        else    //否则，原尾节点的next设置为newNode
+        } else {   //否则，原尾节点的next设置为newNode
             l.next = newNode;
+        }
         size++;
         modCount++;
     }
@@ -98,10 +100,11 @@ public class LinkedList<E>
         //设置newNode为succ的前节点
         succ.prev = newNode;
         //如果succ.prev为null，即如果succ为首节点，则将newNode设置为首节点
-        if (pred == null)
+        if (pred == null) {
             first = newNode;
-        else        //如果succ不是首节点
+        } else {       //如果succ不是首节点
             pred.next = newNode;
+        }
         size++;
         modCount++;
     }
@@ -121,10 +124,11 @@ public class LinkedList<E>
         first = next;
         // 如果原来首结点的后继结点为空，则尾结点设为null
         // 否则，原来首结点的后继结点的前驱结点设为null
-        if (next == null)
+        if (next == null) {
             last = null;
-        else
+        } else {
             next.prev = null;
+        }
         size--;
         modCount++;
         // 返回原来首结点存储的元素
@@ -146,10 +150,11 @@ public class LinkedList<E>
         last = prev;
         // 如果原来尾结点的前驱结点为空，则首结点设为null
         // 否则，原来尾结点的前驱结点的后继结点设为null
-        if (prev == null)
+        if (prev == null) {
             first = null;
-        else
+        } else {
             prev.next = null;
+        }
         size--;
         modCount++;
         // 返回原来尾结点存储的元素
@@ -205,12 +210,14 @@ public class LinkedList<E>
      * @return 首结点存储的元素
      * @throws NoSuchElementException 如果链表为空
      */
+    @Override
     public E getFirst() {
         // 获取首结点引用
         final Node<E> f = first;
         // 如果首结点为空，则抛出无该元素异常
-        if (f == null)
+        if (f == null) {
             throw new NoSuchElementException();
+        }
         // 返回首结点存储的元素
         return f.item;
     }
@@ -221,12 +228,14 @@ public class LinkedList<E>
      * @return 尾结点存储的元素
      * @throws NoSuchElementException 如果链表为空
      */
+    @Override
     public E getLast() {
         // 获取尾结点引用
         final Node<E> l = last;
         // 如果尾结点为空，则抛出无该元素异常
-        if (l == null)
+        if (l == null) {
             throw new NoSuchElementException();
+        }
         // 返回尾结点存储的元素
         return l.item;
     }
@@ -237,12 +246,14 @@ public class LinkedList<E>
      * @return 首结点存储的元素
      * @throws NoSuchElementException 如果链表为空
      */
+    @Override
     public E removeFirst() {
         // 获取首结点引用
         final Node<E> f = first;
         // 如果首结点为空，则抛出无该元素异常
-        if (f == null)
+        if (f == null) {
             throw new NoSuchElementException();
+        }
         // 删除首结点，返回存储的元素
         return unlinkFirst(f);
     }
@@ -253,12 +264,14 @@ public class LinkedList<E>
      * @return 尾结点存储的元素
      * @throws NoSuchElementException 如果链表为空
      */
+    @Override
     public E removeLast() {
         // 获取尾结点引用
         final Node<E> l = last;
         // 如果尾结点为空，则抛出无该元素异常
-        if (l == null)
+        if (l == null) {
             throw new NoSuchElementException();
+        }
         // 删除尾结点，返回存储的元素
         return unlinkLast(l);
     }
@@ -268,6 +281,7 @@ public class LinkedList<E>
      *
      * @param e 要添加的元素
      */
+    @Override
     public void addFirst(E e) {
         // 通过头插法来插入指定元素
         linkFirst(e);
@@ -278,6 +292,7 @@ public class LinkedList<E>
      *
      * @param e the element to add
      */
+    @Override
     public void addLast(E e) {
         linkLast(e);
     }
@@ -288,6 +303,7 @@ public class LinkedList<E>
      * @param o 判断链表是否包含的元素
      * @return {@code true} 如果链表包含指定的元素
      */
+    @Override
     public boolean contains(Object o) {
         //返回指定元素的索引位置，不存在就返回-1，然后比较返回bool值
         return indexOf(o) != -1;
@@ -298,6 +314,7 @@ public class LinkedList<E>
      *
      * @return 元素数量
      */
+    @Override
     public int size() {
         return size;
     }
@@ -308,6 +325,7 @@ public class LinkedList<E>
      * @param e 要添加到此链表中的元素
      * @return {@code true} (as specified by {@link Collection#add})
      */
+    @Override
     public boolean add(E e) {
         // 通过尾插法来插入指定元素
         linkLast(e);
@@ -320,6 +338,7 @@ public class LinkedList<E>
      * @param o 要从该列表中删除的元素（如果存在）
      * @return {@code true} 如果这个列表包含指定的元素
      */
+    @Override
     public boolean remove(Object o) {
         //会根据是否为null分开处理。若值不是null，会用到对象的equals()方法
         if (o == null) {
@@ -349,6 +368,7 @@ public class LinkedList<E>
      * @return {@code true} 如果该链表因添加而改变
      * @throws NullPointerException 如果指定的集合是空的
      */
+    @Override
     public boolean addAll(Collection<? extends E> c) {
         return addAll(size, c);
     }
@@ -362,6 +382,7 @@ public class LinkedList<E>
      * @throws IndexOutOfBoundsException {@inheritDoc}
      * @throws NullPointerException      如果指定的集合是空的
      */
+    @Override
     public boolean addAll(int index, Collection<? extends E> c) {
         //检查索引是否正确（0<=index<=size）
         checkPositionIndex(index);
@@ -370,8 +391,9 @@ public class LinkedList<E>
         //得到元素个数
         int numNew = a.length;
         //若没有元素要添加，直接返回false
-        if (numNew == 0)
+        if (numNew == 0) {
             return false;
+        }
         //succ指向当前需要插入节点的位置，pred指向其前一个节点
         Node<E> pred, succ;
         //如果是在末尾开始添加，当前节点后一个节点初始化为null，前一个节点为尾节点
@@ -388,10 +410,11 @@ public class LinkedList<E>
             //将元素值e，前继节点pred“封装”为一个新节点newNode
             Node<E> newNode = new Node<>(pred, e, null);
             //如果原链表为null，则新插入的节点作为链表首节点
-            if (pred == null)
+            if (pred == null) {
                 first = newNode;
-            else
+            } else {
                 pred.next = newNode;    //如果存在前节点，前节点会向后指向新加的节点
+            }
             pred = newNode; //pred指针向后移动，指向下一个需插入节点位置的前一个节点
         }
         //如果是从最后开始添加的，则最后添加的节点成为尾节点
@@ -410,6 +433,7 @@ public class LinkedList<E>
     /**
      * 删除所有元素
      */
+    @Override
     public void clear() {
         //遍历链表，删除所有结点,方便gc回收垃圾
         for (Node<E> x = first; x != null; ) {
@@ -436,6 +460,7 @@ public class LinkedList<E>
      * @return 该链表中指定位置的元素
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
+    @Override
     public E get(int index) {
         // 判断指定位置是否合法
         checkElementIndex(index);
@@ -451,6 +476,7 @@ public class LinkedList<E>
      * @return 之前在指定位置的元素
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
+    @Override
     public E set(int index, E element) {
         // 判断指定位置是否合法
         checkElementIndex(index);
@@ -471,14 +497,16 @@ public class LinkedList<E>
      * @param element 要插入的元素
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
+    @Override
     public void add(int index, E element) {
         // 判断指定位置是否合法
         checkPositionIndex(index);
         // 如果指定位置在尾部，则通过尾插法来插入指定元素
-        if (index == size)
+        if (index == size) {
             linkLast(element);
-        else        //如果指定位置不是尾部，则添加到指定位置前
+        } else {       //如果指定位置不是尾部，则添加到指定位置前
             linkBefore(element, node(index));
+        }
     }
 
     /**
@@ -488,6 +516,7 @@ public class LinkedList<E>
      * @return 之前在指定位置的元素
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
+    @Override
     public E remove(int index) {
         // 判断指定位置是否合法
         checkElementIndex(index);
@@ -522,8 +551,9 @@ public class LinkedList<E>
      * @param index
      */
     private void checkElementIndex(int index) {
-        if (!isElementIndex(index))
+        if (!isElementIndex(index)) {
             throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
+        }
     }
 
     /**
@@ -532,8 +562,9 @@ public class LinkedList<E>
      * @param index
      */
     private void checkPositionIndex(int index) {
-        if (!isPositionIndex(index))
+        if (!isPositionIndex(index)) {
             throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
+        }
     }
 
     /**
@@ -544,13 +575,15 @@ public class LinkedList<E>
         // 否则，从尾结点开始遍历
         if (index < (size >> 1)) {
             Node<E> x = first;
-            for (int i = 0; i < index; i++)
+            for (int i = 0; i < index; i++) {
                 x = x.next;
+            }
             return x;
         } else {
             Node<E> x = last;
-            for (int i = size - 1; i > index; i--)
+            for (int i = size - 1; i > index; i--) {
                 x = x.prev;
+            }
             return x;
         }
     }
@@ -565,19 +598,22 @@ public class LinkedList<E>
      * @return the index of the first occurrence of the specified element in
      * this list, or -1 if this list does not contain the element
      */
+    @Override
     public int indexOf(Object o) {
         int index = 0;
         if (o == null) {
             // 遍历链表，顺序查找指定元素
             for (Node<E> x = first; x != null; x = x.next) {
-                if (x.item == null)
+                if (x.item == null) {
                     return index;
+                }
                 index++;
             }
         } else {
             for (Node<E> x = first; x != null; x = x.next) {
-                if (o.equals(x.item))
+                if (o.equals(x.item)) {
                     return index;
+                }
                 index++;
             }
         }
@@ -592,20 +628,23 @@ public class LinkedList<E>
      * @return the index of the last occurrence of the specified element in
      * this list, or -1 if this list does not contain the element
      */
+    @Override
     public int lastIndexOf(Object o) {
         int index = size;
         if (o == null) {
             // 遍历链表，逆序查找指定元素
             for (Node<E> x = last; x != null; x = x.prev) {
                 index--;
-                if (x.item == null)
+                if (x.item == null) {
                     return index;
+                }
             }
         } else {
             for (Node<E> x = last; x != null; x = x.prev) {
                 index--;
-                if (o.equals(x.item))
+                if (o.equals(x.item)) {
                     return index;
+                }
             }
         }
         return -1;
@@ -620,6 +659,7 @@ public class LinkedList<E>
      * @return the head of this list, or {@code null} 如果链表为空
      * @since 1.5
      */
+    @Override
     public E peek() {
         final Node<E> f = first;
         // 如果首结点为空，则返回null
@@ -635,6 +675,7 @@ public class LinkedList<E>
      * @throws NoSuchElementException 如果链表为空
      * @since 1.5
      */
+    @Override
     public E element() {
         // 返回首结点存储的元素
         return getFirst();
@@ -647,6 +688,7 @@ public class LinkedList<E>
      * @return the head of this list, or {@code null} 如果链表为空
      * @since 1.5
      */
+    @Override
     public E poll() {
         // 获取首结点引用
         final Node<E> f = first;
@@ -663,6 +705,7 @@ public class LinkedList<E>
      * @throws NoSuchElementException 如果链表为空
      * @since 1.5
      */
+    @Override
     public E remove() {
         // 删除首结点，返回首结点存储的元素
         return removeFirst();
@@ -675,6 +718,7 @@ public class LinkedList<E>
      * @return {@code true} (as specified by {@link Queue#offer})
      * @since 1.5
      */
+    @Override
     public boolean offer(E e) {
         // 通过尾插法插入指定元素，返回操作结果
         return add(e);
@@ -689,6 +733,7 @@ public class LinkedList<E>
      * @return {@code true} (as specified by {@link Deque#offerFirst})
      * @since 1.6
      */
+    @Override
     public boolean offerFirst(E e) {
         //  通过尾插法来插入指定元素
         addFirst(e);
@@ -702,6 +747,7 @@ public class LinkedList<E>
      * @return {@code true} (as specified by {@link Deque#offerLast})
      * @since 1.6
      */
+    @Override
     public boolean offerLast(E e) {
         // 通过尾插法来插入指定元素
         addLast(e);
@@ -715,6 +761,7 @@ public class LinkedList<E>
      * 如果链表为空
      * @since 1.6
      */
+    @Override
     public E peekFirst() {
         // 获取首结点引用
         final Node<E> f = first;
@@ -730,6 +777,7 @@ public class LinkedList<E>
      * 如果链表为空
      * @since 1.6
      */
+    @Override
     public E peekLast() {
         // 获取尾结点引用
         final Node<E> l = last;
@@ -745,6 +793,7 @@ public class LinkedList<E>
      * this list is empty
      * @since 1.6
      */
+    @Override
     public E pollFirst() {
         // 获取首结点引用
         final Node<E> f = first;
@@ -760,6 +809,7 @@ public class LinkedList<E>
      * this list is empty
      * @since 1.6
      */
+    @Override
     public E pollLast() {
         // 获取尾结点引用
         final Node<E> l = last;
@@ -774,6 +824,7 @@ public class LinkedList<E>
      * @param e the element to push
      * @since 1.6
      */
+    @Override
     public void push(E e) {
         // 通过头插法来插入指定元素
         addFirst(e);
@@ -787,6 +838,7 @@ public class LinkedList<E>
      * @throws NoSuchElementException 如果链表为空
      * @since 1.6
      */
+    @Override
     public E pop() {
         // 删除首结点，返回首结点存储的元素
         return removeFirst();
@@ -799,6 +851,7 @@ public class LinkedList<E>
      * @return {@code true} 如果链表包含指定的元素
      * @since 1.6
      */
+    @Override
     public boolean removeFirstOccurrence(Object o) {
         // 删除顺序下首次出现的指定元素对应的结点，返回操作结果
         return remove(o);
@@ -811,6 +864,7 @@ public class LinkedList<E>
      * @return {@code true} 如果链表包含指定的元素
      * @since 1.6
      */
+    @Override
     public boolean removeLastOccurrence(Object o) {
         //由于LinkedList中允许存放null，因此下面通过两种情况来分别处理
         if (o == null) {
@@ -855,6 +909,7 @@ public class LinkedList<E>
      * @throws IndexOutOfBoundsException {@inheritDoc}
      * @see List#listIterator(int)
      */
+    @Override
     public ListIterator<E> listIterator(int index) {
         checkPositionIndex(index);
         return new ListItr(index);
@@ -872,14 +927,17 @@ public class LinkedList<E>
             nextIndex = index;
         }
 
+        @Override
         public boolean hasNext() {
             return nextIndex < size;
         }
 
+        @Override
         public E next() {
             checkForComodification();
-            if (!hasNext())
+            if (!hasNext()) {
                 throw new NoSuchElementException();
+            }
 
             lastReturned = next;
             next = next.next;
@@ -887,61 +945,74 @@ public class LinkedList<E>
             return lastReturned.item;
         }
 
+        @Override
         public boolean hasPrevious() {
             return nextIndex > 0;
         }
 
+        @Override
         public E previous() {
             checkForComodification();
-            if (!hasPrevious())
+            if (!hasPrevious()) {
                 throw new NoSuchElementException();
+            }
 
             lastReturned = next = (next == null) ? last : next.prev;
             nextIndex--;
             return lastReturned.item;
         }
 
+        @Override
         public int nextIndex() {
             return nextIndex;
         }
 
+        @Override
         public int previousIndex() {
             return nextIndex - 1;
         }
 
+        @Override
         public void remove() {
             checkForComodification();
-            if (lastReturned == null)
+            if (lastReturned == null) {
                 throw new IllegalStateException();
+            }
 
             Node<E> lastNext = lastReturned.next;
             unlink(lastReturned);
-            if (next == lastReturned)
+            if (next == lastReturned) {
                 next = lastNext;
-            else
+            } else {
                 nextIndex--;
+            }
             lastReturned = null;
             expectedModCount++;
         }
 
+        @Override
         public void set(E e) {
-            if (lastReturned == null)
+            if (lastReturned == null) {
                 throw new IllegalStateException();
+            }
             checkForComodification();
             lastReturned.item = e;
         }
 
+        @Override
         public void add(E e) {
             checkForComodification();
             lastReturned = null;
-            if (next == null)
+            if (next == null) {
                 linkLast(e);
-            else
+            } else {
                 linkBefore(e, next);
+            }
             nextIndex++;
             expectedModCount++;
         }
 
+        @Override
         public void forEachRemaining(Consumer<? super E> action) {
             Objects.requireNonNull(action);
             while (modCount == expectedModCount && nextIndex < size) {
@@ -954,8 +1025,9 @@ public class LinkedList<E>
         }
 
         final void checkForComodification() {
-            if (modCount != expectedModCount)
+            if (modCount != expectedModCount) {
                 throw new ConcurrentModificationException();
+            }
         }
     }
 
@@ -985,6 +1057,7 @@ public class LinkedList<E>
      *
      * @since 1.6
      */
+    @Override
     public Iterator<E> descendingIterator() {
         return new DescendingIterator();
     }
@@ -995,14 +1068,17 @@ public class LinkedList<E>
     private class DescendingIterator implements Iterator<E> {
         private final ListItr itr = new ListItr(size());
 
+        @Override
         public boolean hasNext() {
             return itr.hasPrevious();
         }
 
+        @Override
         public E next() {
             return itr.previous();
         }
 
+        @Override
         public void remove() {
             itr.remove();
         }
@@ -1025,6 +1101,7 @@ public class LinkedList<E>
      *
      * @return a shallow copy of this {@code LinkedList} instance
      */
+    @Override
     public Object clone() {
         LinkedList<E> clone = superClone();
 
@@ -1034,8 +1111,9 @@ public class LinkedList<E>
         clone.modCount = 0;
 
         // 插入结点
-        for (Node<E> x = first; x != null; x = x.next)
+        for (Node<E> x = first; x != null; x = x.next) {
             clone.add(x.item);
+        }
         // 返回克隆后的对象引用
         return clone;
     }
@@ -1054,11 +1132,13 @@ public class LinkedList<E>
      * @return an array containing all of the elements in this list
      * in proper sequence
      */
+    @Override
     public Object[] toArray() {
         Object[] result = new Object[size];
         int i = 0;
-        for (Node<E> x = first; x != null; x = x.next)
+        for (Node<E> x = first; x != null; x = x.next) {
             result[i++] = x.item;
+        }
         return result;
     }
 
@@ -1100,18 +1180,22 @@ public class LinkedList<E>
      *                              this list
      * @throws NullPointerException if the specified array is null
      */
+    @Override
     @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {
-        if (a.length < size)
+        if (a.length < size) {
             a = (T[]) java.lang.reflect.Array.newInstance(
                     a.getClass().getComponentType(), size);
+        }
         int i = 0;
         Object[] result = a;
-        for (Node<E> x = first; x != null; x = x.next)
+        for (Node<E> x = first; x != null; x = x.next) {
             result[i++] = x.item;
+        }
 
-        if (a.length > size)
+        if (a.length > size) {
             a[size] = null;
+        }
 
         return a;
     }
@@ -1130,8 +1214,9 @@ public class LinkedList<E>
         s.writeInt(size);
 
         // 遍历链表，写入所有元素
-        for (Node<E> x = first; x != null; x = x.next)
+        for (Node<E> x = first; x != null; x = x.next) {
             s.writeObject(x.item);
+        }
     }
 
     /**
@@ -1147,8 +1232,9 @@ public class LinkedList<E>
         int size = s.readInt();
 
         // 遍历链表，读取所有元素并尾部插入
-        for (int i = 0; i < size; i++)
+        for (int i = 0; i < size; i++) {
             linkLast((E) s.readObject());
+        }
     }
 
     /**
@@ -1192,9 +1278,9 @@ public class LinkedList<E>
             int s; // force initialization
             final LinkedList<E> lst;
             if ((s = est) < 0) {
-                if ((lst = list) == null)
+                if ((lst = list) == null) {
                     s = est = 0;
-                else {
+                } else {
                     expectedModCount = lst.modCount;
                     current = lst.first;
                     s = est = lst.size;
@@ -1203,19 +1289,23 @@ public class LinkedList<E>
             return s;
         }
 
+        @Override
         public long estimateSize() {
             return (long) getEst();
         }
 
+        @Override
         public Spliterator<E> trySplit() {
             Node<E> p;
             int s = getEst();
             if (s > 1 && (p = current) != null) {
                 int n = batch + BATCH_UNIT;
-                if (n > s)
+                if (n > s) {
                     n = s;
-                if (n > MAX_BATCH)
+                }
+                if (n > MAX_BATCH) {
                     n = MAX_BATCH;
+                }
                 Object[] a = new Object[n];
                 int j = 0;
                 do {
@@ -1229,10 +1319,13 @@ public class LinkedList<E>
             return null;
         }
 
+        @Override
         public void forEachRemaining(Consumer<? super E> action) {
             Node<E> p;
             int n;
-            if (action == null) throw new NullPointerException();
+            if (action == null) {
+                throw new NullPointerException();
+            }
             if ((n = getEst()) > 0 && (p = current) != null) {
                 current = null;
                 est = 0;
@@ -1242,25 +1335,31 @@ public class LinkedList<E>
                     action.accept(e);
                 } while (p != null && --n > 0);
             }
-            if (list.modCount != expectedModCount)
+            if (list.modCount != expectedModCount) {
                 throw new ConcurrentModificationException();
+            }
         }
 
+        @Override
         public boolean tryAdvance(Consumer<? super E> action) {
             Node<E> p;
-            if (action == null) throw new NullPointerException();
+            if (action == null) {
+                throw new NullPointerException();
+            }
             if (getEst() > 0 && (p = current) != null) {
                 --est;
                 E e = p.item;
                 current = p.next;
                 action.accept(e);
-                if (list.modCount != expectedModCount)
+                if (list.modCount != expectedModCount) {
                     throw new ConcurrentModificationException();
+                }
                 return true;
             }
             return false;
         }
 
+        @Override
         public int characteristics() {
             return Spliterator.ORDERED | Spliterator.SIZED | Spliterator.SUBSIZED;
         }
