@@ -99,8 +99,10 @@ public final class Unsafe {
     @CallerSensitive
     public static Unsafe getUnsafe() {
         Class<?> caller = Reflection.getCallerClass();
-        if (!VM.isSystemDomainLoader(caller.getClassLoader()))
+        // 仅在引导类加载器`BootstrapClassLoader`加载时才合法
+        if (!VM.isSystemDomainLoader(caller.getClassLoader())) {
             throw new SecurityException("Unsafe");
+        }
         return theUnsafe;
     }
 
@@ -477,6 +479,7 @@ public final class Unsafe {
     /// wrappers for malloc, realloc, free:
 
     /**
+     * 分配内存
      * Allocates a new block of native memory, of the given size in bytes.  The
      * contents of the memory are uninitialized; they will generally be
      * garbage.  The resulting native pointer will never be zero, and will be

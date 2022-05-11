@@ -343,15 +343,34 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * that workerCount is 0 (which sometimes entails a recheck -- see
      * below).
      */
+
+    /**
+     * 高3位表示线程状态，低29位表示线程数，目的可以用一次CAS操作进行赋值
+     */
     private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0));
     private static final int COUNT_BITS = Integer.SIZE - 3;
     private static final int CAPACITY   = (1 << COUNT_BITS) - 1;
 
     // runState is stored in the high-order bits
+    /**
+     * -3
+     */
     private static final int RUNNING    = -1 << COUNT_BITS;
+    /**
+     * 0
+     */
     private static final int SHUTDOWN   =  0 << COUNT_BITS;
+    /**
+     * 1
+     */
     private static final int STOP       =  1 << COUNT_BITS;
+    /**
+     * 2
+     */
     private static final int TIDYING    =  2 << COUNT_BITS;
+    /**
+     * 3
+     */
     private static final int TERMINATED =  3 << COUNT_BITS;
 
     // Packing and unpacking ctl
@@ -2056,7 +2075,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
          */
         public DiscardOldestPolicy() { }
 
-        /**
+        /**S
          * Obtains and ignores the next task that the executor
          * would otherwise execute, if one is immediately available,
          * and then retries execution of task r, unless the executor

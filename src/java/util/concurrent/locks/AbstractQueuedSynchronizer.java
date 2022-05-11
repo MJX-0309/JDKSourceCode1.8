@@ -584,8 +584,9 @@ public abstract class AbstractQueuedSynchronizer
         for (;;) {
             Node t = tail;
             if (t == null) { // Must initialize
-                if (compareAndSetHead(new Node()))
+                if (compareAndSetHead(new Node())) {
                     tail = head;
+                }
             } else {
                 node.prev = t;
                 if (compareAndSetTail(t, node)) {
@@ -794,12 +795,13 @@ public abstract class AbstractQueuedSynchronizer
      */
     private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
         int ws = pred.waitStatus;
-        if (ws == Node.SIGNAL)
+        if (ws == Node.SIGNAL){
             /*
              * This node has already set status asking a release
              * to signal it, so it can safely park.
              */
             return true;
+        }
         if (ws > 0) {
             /*
              * Predecessor was cancelled. Skip over predecessors and
@@ -858,21 +860,27 @@ public abstract class AbstractQueuedSynchronizer
         boolean failed = true;
         try {
             boolean interrupted = false;
+            //一直循环
             for (;;) {
+                //上一节点
                 final Node p = node.predecessor();
+                //如果是dummy节点
                 if (p == head && tryAcquire(arg)) {
                     setHead(node);
                     p.next = null; // help GC
                     failed = false;
                     return interrupted;
                 }
+                //获取失败后
                 if (shouldParkAfterFailedAcquire(p, node) &&
-                    parkAndCheckInterrupt())
+                    parkAndCheckInterrupt()) {
                     interrupted = true;
+                }
             }
         } finally {
-            if (failed)
+            if (failed) {
                 cancelAcquire(node);
+            }
         }
     }
 
@@ -1195,9 +1203,11 @@ public abstract class AbstractQueuedSynchronizer
      *        can represent anything you like.
      */
     public final void acquire(int arg) {
+        //加入到队列
         if (!tryAcquire(arg) &&
-            acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+            acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) {
             selfInterrupt();
+        }
     }
 
     /**
@@ -1258,10 +1268,13 @@ public abstract class AbstractQueuedSynchronizer
      * @return the value returned from {@link #tryRelease}
      */
     public final boolean release(int arg) {
+        //tryRelease可重入的时候可能会有false
         if (tryRelease(arg)) {
             Node h = head;
-            if (h != null && h.waitStatus != 0)
+            if (h != null && h.waitStatus != 0) {
+                //唤醒后继节点
                 unparkSuccessor(h);
+            }
             return true;
         }
         return false;
@@ -1516,6 +1529,7 @@ public abstract class AbstractQueuedSynchronizer
         Node t = tail; // Read fields in reverse initialization order
         Node h = head;
         Node s;
+        //头不等于尾
         return h != t &&
             ((s = h.next) == null || s.thread != Thread.currentThread());
     }
@@ -1670,20 +1684,25 @@ public abstract class AbstractQueuedSynchronizer
     final boolean transferForSignal(Node node) {
         /*
          * If cannot change waitStatus, the node has been cancelled.
+         * -2改成0
          */
-        if (!compareAndSetWaitStatus(node, Node.CONDITION, 0))
+        if (!compareAndSetWaitStatus(node, Node.CONDITION, 0)) {
             return false;
+        }
 
         /*
          * Splice onto queue and try to set waitStatus of predecessor to
          * indicate that thread is (probably) waiting. If cancelled or
          * attempt to set waitStatus fails, wake up to resync (in which
          * case the waitStatus can be transiently and harmlessly wrong).
+         * 加入到等待队列的尾部
          */
         Node p = enq(node);
         int ws = p.waitStatus;
-        if (ws > 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL))
+        //>0就是为CANCELLED状态，将上一个节点状态改为SIGNAL状态
+        if (ws > 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL)) {
             LockSupport.unpark(node.thread);
+        }
         return true;
     }
 
@@ -1869,9 +1888,12 @@ public abstract class AbstractQueuedSynchronizer
          */
         private void doSignal(Node first) {
             do {
-                if ( (firstWaiter = first.nextWaiter) == null)
+                //从链表中断开
+                if ( (firstWaiter = first.nextWaiter) == null) {
                     lastWaiter = null;
+                }
                 first.nextWaiter = null;
+                //转移到竞争锁链表，可能会失败就找下一个去唤醒
             } while (!transferForSignal(first) &&
                      (first = firstWaiter) != null);
         }
@@ -1935,11 +1957,15 @@ public abstract class AbstractQueuedSynchronizer
          *         returns {@code false}
          */
         public final void signal() {
-            if (!isHeldExclusively())
+            //线程是否持有锁
+            if (!isHeldExclusively()) {
                 throw new IllegalMonitorStateException();
+            }
+            //总是第一个
             Node first = firstWaiter;
-            if (first != null)
+            if (first != null) {
                 doSignal(first);
+            }
         }
 
         /**
@@ -2030,22 +2056,28 @@ public abstract class AbstractQueuedSynchronizer
          * </ol>
          */
         public final void await() throws InterruptedException {
-            if (Thread.interrupted())
+            if (Thread.interrupted()) {
                 throw new InterruptedException();
+            }
+            //加到单向链表里面，没有dummy结点
             Node node = addConditionWaiter();
             int savedState = fullyRelease(node);
             int interruptMode = 0;
             while (!isOnSyncQueue(node)) {
                 LockSupport.park(this);
-                if ((interruptMode = checkInterruptWhileWaiting(node)) != 0)
+                if ((interruptMode = checkInterruptWhileWaiting(node)) != 0) {
                     break;
+                }
             }
-            if (acquireQueued(node, savedState) && interruptMode != THROW_IE)
+            if (acquireQueued(node, savedState) && interruptMode != THROW_IE) {
                 interruptMode = REINTERRUPT;
-            if (node.nextWaiter != null) // clean up if cancelled
+            }
+            if (node.nextWaiter != null){ // clean up if cancelled
                 unlinkCancelledWaiters();
-            if (interruptMode != 0)
+            }
+            if (interruptMode != 0) {
                 reportInterruptAfterWait(interruptMode);
+            }
         }
 
         /**
