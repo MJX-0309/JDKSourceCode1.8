@@ -396,6 +396,7 @@ public abstract class AbstractQueuedSynchronizer
         static final int PROPAGATE = -3;
 
         /**
+         * 代表后继节点的状态
          * Status field, taking on only the values:
          *   SIGNAL:     The successor of this node is (or will soon be)
          *               blocked (via park), so the current node must
@@ -432,6 +433,7 @@ public abstract class AbstractQueuedSynchronizer
         volatile int waitStatus;
 
         /**
+         * 前驱节点
          * Link to predecessor node that current node/thread relies on
          * for checking waitStatus. Assigned during enqueuing, and nulled
          * out (for sake of GC) only upon dequeuing.  Also, upon
@@ -445,6 +447,7 @@ public abstract class AbstractQueuedSynchronizer
         volatile Node prev;
 
         /**
+         * 后继节点
          * Link to the successor node that the current node/thread
          * unparks upon release. Assigned during enqueuing, adjusted
          * when bypassing cancelled predecessors, and nulled out (for
@@ -460,6 +463,7 @@ public abstract class AbstractQueuedSynchronizer
         volatile Node next;
 
         /**
+         * 当前Node节点所对应的线程
          * The thread that enqueued this node.  Initialized on
          * construction and nulled out after use.
          */
@@ -576,6 +580,7 @@ public abstract class AbstractQueuedSynchronizer
     static final long spinForTimeoutThreshold = 1000L;
 
     /**
+     * 自旋地向队列插入
      * Inserts node into queue, initializing if necessary. See picture above.
      * @param node the node to insert
      * @return node's predecessor
@@ -607,13 +612,16 @@ public abstract class AbstractQueuedSynchronizer
         Node node = new Node(Thread.currentThread(), mode);
         // Try the fast path of enq; backup to full enq on failure
         Node pred = tail;
+        //存在尾节点
         if (pred != null) {
             node.prev = pred;
+            //设置当前新增的为尾节点
             if (compareAndSetTail(pred, node)) {
                 pred.next = node;
                 return node;
             }
         }
+        //队列中没有或CAS失败则采用自旋方式入队
         enq(node);
         return node;
     }
@@ -802,6 +810,11 @@ public abstract class AbstractQueuedSynchronizer
              */
             return true;
         }
+        // 前驱节点 waitStatus大于0，说明前驱节点取消了排队。
+        // 这里需要知道这点：进入阻塞队列排队的线程会被挂起，而唤醒的操作是由前驱节点完成的。
+        // 所以下面这块代码说的是将当前节点的prev指向waitStatus<=0的节点，
+        // 简单说，就是为了找个好爹，因为你还得依赖它来唤醒呢，如果前驱节点取消了排队，
+        // 找前驱节点的前驱节点做爹，往前遍历总能找到一个好爹的
         if (ws > 0) {
             /*
              * Predecessor was cancelled. Skip over predecessors and
@@ -864,7 +877,10 @@ public abstract class AbstractQueuedSynchronizer
             for (;;) {
                 //上一节点
                 final Node p = node.predecessor();
-                //如果是dummy节点
+                //如果是头节点则可以去尝试获取锁，为什么可以去试试：
+                // 首先，它是队头，这个是第一个条件，其次，当前的head有可能是刚刚初始化的node，
+                // enq(node) 方法里面有提到，head是延时初始化的，而且new Node()的时候没有设置任何线程
+                // 也就是说，当前的head不属于任何一个线程，所以作为队头，可以去试一试，
                 if (p == head && tryAcquire(arg)) {
                     setHead(node);
                     p.next = null; // help GC
@@ -1205,6 +1221,7 @@ public abstract class AbstractQueuedSynchronizer
     public final void acquire(int arg) {
         //加入到队列
         if (!tryAcquire(arg) &&
+                //没有拿到锁就加入阻塞队列，并不断获取锁
             acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) {
             selfInterrupt();
         }
@@ -1531,6 +1548,8 @@ public abstract class AbstractQueuedSynchronizer
         Node s;
         //头不等于尾
         return h != t &&
+                //有其他线程第一次正在入队时，可能会出现h != t && h.next == null
+                //第一个等待的线程为null或者第一个线程不是当前线程，则说明有前驱节点
             ((s = h.next) == null || s.thread != Thread.currentThread());
     }
 
@@ -2296,6 +2315,7 @@ public abstract class AbstractQueuedSynchronizer
     private static final long waitStatusOffset;
     private static final long nextOffset;
 
+    //获取变量的内存地址
     static {
         try {
             stateOffset = unsafe.objectFieldOffset
