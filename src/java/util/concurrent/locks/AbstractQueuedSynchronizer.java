@@ -470,6 +470,7 @@ public abstract class AbstractQueuedSynchronizer
         volatile Thread thread;
 
         /**
+         * 条件队列的next指针
          * Link to next node waiting on condition, or the special
          * value SHARED.  Because condition queues are accessed only
          * when holding in exclusive mode, we just need a simple
@@ -693,8 +694,10 @@ public abstract class AbstractQueuedSynchronizer
             if (h != null && h != tail) {
                 int ws = h.waitStatus;
                 if (ws == Node.SIGNAL) {
+                    //将状态设为0
                     if (!compareAndSetWaitStatus(h, Node.SIGNAL, 0))
                         continue;            // loop to recheck cases
+                    //唤醒后面的节点
                     unparkSuccessor(h);
                 }
                 else if (ws == 0 &&
@@ -733,6 +736,7 @@ public abstract class AbstractQueuedSynchronizer
          * racing acquires/releases, so most need signals now or soon
          * anyway.
          */
+        //唤醒当前node后继续唤醒下面的节点
         if (propagate > 0 || h == null || h.waitStatus < 0 ||
             (h = head) == null || h.waitStatus < 0) {
             Node s = node.next;
@@ -1369,6 +1373,7 @@ public abstract class AbstractQueuedSynchronizer
      */
     public final boolean releaseShared(int arg) {
         if (tryReleaseShared(arg)) {
+            //唤醒 await 的线程
             doReleaseShared();
             return true;
         }
@@ -1664,6 +1669,7 @@ public abstract class AbstractQueuedSynchronizer
     final boolean isOnSyncQueue(Node node) {
         if (node.waitStatus == Node.CONDITION || node.prev == null)
             return false;
+        //如果有后继节点，一定是
         if (node.next != null) // If has successor, it must be on queue
             return true;
         /*
@@ -1674,6 +1680,7 @@ public abstract class AbstractQueuedSynchronizer
          * unless the CAS failed (which is unlikely), it will be
          * there, so we hardly ever traverse much.
          */
+        //遍历查找
         return findNodeFromTail(node);
     }
 
@@ -1703,7 +1710,7 @@ public abstract class AbstractQueuedSynchronizer
     final boolean transferForSignal(Node node) {
         /*
          * If cannot change waitStatus, the node has been cancelled.
-         * -2改成0
+         * CAS 如果失败，说明此 node 的 waitStatus 已不是 Node.CONDITION，说明节点已经取消
          */
         if (!compareAndSetWaitStatus(node, Node.CONDITION, 0)) {
             return false;
@@ -1720,6 +1727,7 @@ public abstract class AbstractQueuedSynchronizer
         int ws = p.waitStatus;
         //>0就是为CANCELLED状态，将上一个节点状态改为SIGNAL状态
         if (ws > 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL)) {
+            // 如果前驱节点取消或者 CAS 失败，会进到这里唤醒线程
             LockSupport.unpark(node.thread);
         }
         return true;
@@ -1758,6 +1766,7 @@ public abstract class AbstractQueuedSynchronizer
         boolean failed = true;
         try {
             int savedState = getState();
+            //将 state 置为 0
             if (release(savedState)) {
                 failed = false;
                 return savedState;
@@ -1765,6 +1774,7 @@ public abstract class AbstractQueuedSynchronizer
                 throw new IllegalMonitorStateException();
             }
         } finally {
+            //如果没有拿到锁就会被设置为CANCELLED，然后被清出去
             if (failed)
                 node.waitStatus = Node.CANCELLED;
         }
@@ -1867,9 +1877,9 @@ public abstract class AbstractQueuedSynchronizer
      */
     public class ConditionObject implements Condition, java.io.Serializable {
         private static final long serialVersionUID = 1173984872572414699L;
-        /** First node of condition queue. */
+        /** 条件队列的第一个节点 First node of condition queue. */
         private transient Node firstWaiter;
-        /** Last node of condition queue. */
+        /** 条件队列的最后一个节点Last node of condition queue. */
         private transient Node lastWaiter;
 
         /**
@@ -1886,11 +1896,14 @@ public abstract class AbstractQueuedSynchronizer
         private Node addConditionWaiter() {
             Node t = lastWaiter;
             // If lastWaiter is cancelled, clean out.
+            //遍历清除取消排队的队列
             if (t != null && t.waitStatus != Node.CONDITION) {
                 unlinkCancelledWaiters();
                 t = lastWaiter;
             }
+            //新增节点的状态为CONDITION
             Node node = new Node(Thread.currentThread(), Node.CONDITION);
+            //连接到队列上
             if (t == null)
                 firstWaiter = node;
             else
@@ -1980,7 +1993,7 @@ public abstract class AbstractQueuedSynchronizer
             if (!isHeldExclusively()) {
                 throw new IllegalMonitorStateException();
             }
-            //总是第一个
+            //从第一个开始找能唤醒的
             Node first = firstWaiter;
             if (first != null) {
                 doSignal(first);
@@ -2039,6 +2052,9 @@ public abstract class AbstractQueuedSynchronizer
         private static final int THROW_IE    = -1;
 
         /**
+         *  1. 如果在 signal 之前已经中断，返回 THROW_IE
+         *  2. 如果是 signal 之后中断，返回 REINTERRUPT
+         *  3. 没有发生中断，返回 0
          * Checks for interrupt, returning THROW_IE if interrupted
          * before signalled, REINTERRUPT if after signalled, or
          * 0 if not interrupted.
@@ -2078,16 +2094,20 @@ public abstract class AbstractQueuedSynchronizer
             if (Thread.interrupted()) {
                 throw new InterruptedException();
             }
-            //加到单向链表里面，没有dummy结点
+            //加到单向链表里面
             Node node = addConditionWaiter();
             int savedState = fullyRelease(node);
             int interruptMode = 0;
+            //加入到阻塞队列或被中断则中止循环
+            //如果不在阻塞队列
             while (!isOnSyncQueue(node)) {
+                //则挂起线程
                 LockSupport.park(this);
                 if ((interruptMode = checkInterruptWhileWaiting(node)) != 0) {
                     break;
                 }
             }
+            // 被唤醒后，将进入阻塞队列，等待获取锁
             if (acquireQueued(node, savedState) && interruptMode != THROW_IE) {
                 interruptMode = REINTERRUPT;
             }
